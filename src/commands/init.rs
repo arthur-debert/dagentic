@@ -25,7 +25,7 @@ pub fn run(ctx: &Context) -> Result<()> {
     print_install_result(&issue_result);
 
     println!("\nCreating labels...");
-    for (name, result) in labels::create_all(ctx.host) {
+    for (name, result) in labels::create_all(ctx.host, ctx.config) {
         match result {
             Ok(()) => println!("  {name}"),
             Err(e) => eprintln!("  Warning: could not create label '{name}': {e}"),
@@ -80,6 +80,7 @@ fn print_install_result(result: &templates::InstallResult) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::Config;
     use crate::context::Context;
     use crate::fs::fake::FakeFs;
     use crate::gh::fake::FakeGitHost;
@@ -90,8 +91,18 @@ mod tests {
         PathBuf::from("/repo")
     }
 
-    fn make_ctx<'a>(fs: &'a FakeFs, host: &'a FakeGitHost, repo: &'a FakeGitRepo) -> Context<'a> {
-        Context { fs, host, repo }
+    fn make_ctx<'a>(
+        fs: &'a FakeFs,
+        host: &'a FakeGitHost,
+        repo: &'a FakeGitRepo,
+        config: &'a Config,
+    ) -> Context<'a> {
+        Context {
+            config,
+            fs,
+            host,
+            repo,
+        }
     }
 
     #[test]
@@ -99,7 +110,8 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new().with_secret("ANTHROPIC_API_KEY");
         let repo = FakeGitRepo::github(root());
-        let ctx = make_ctx(&fs, &host, &repo);
+        let config = Config::default();
+        let ctx = make_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
 
@@ -115,7 +127,8 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
-        let ctx = make_ctx(&fs, &host, &repo);
+        let config = Config::default();
+        let ctx = make_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
 
@@ -131,7 +144,8 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
-        let ctx = make_ctx(&fs, &host, &repo);
+        let config = Config::default();
+        let ctx = make_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
 
@@ -149,7 +163,8 @@ mod tests {
             root: root(),
             remote: "git@gitlab.com:user/repo.git".to_string(),
         };
-        let ctx = make_ctx(&fs, &host, &repo);
+        let config = Config::default();
+        let ctx = make_ctx(&fs, &host, &repo, &config);
 
         let err = run(&ctx).unwrap_err();
         assert!(err.to_string().contains("GitHub"));
@@ -160,7 +175,8 @@ mod tests {
         let fs = FakeFs::new().with_file(root().join("CLAUDE.md"), "# My project");
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
-        let ctx = make_ctx(&fs, &host, &repo);
+        let config = Config::default();
+        let ctx = make_ctx(&fs, &host, &repo, &config);
 
         // Should not error — CLAUDE.md is found
         run(&ctx).unwrap();

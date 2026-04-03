@@ -1,10 +1,11 @@
+use crate::config::Config;
 use crate::context::Context;
 use crate::git;
 use anyhow::{Result, bail};
 
 struct Section {
     title: &'static str,
-    label: &'static str,
+    label: String,
     kind: ItemKind,
 }
 
@@ -13,33 +14,35 @@ enum ItemKind {
     Pr,
 }
 
-const SECTIONS: &[Section] = &[
-    Section {
-        title: "Issues awaiting planning",
-        label: "needs-plan",
-        kind: ItemKind::Issue,
-    },
-    Section {
-        title: "Plans ready for review",
-        label: "plan-ready",
-        kind: ItemKind::Issue,
-    },
-    Section {
-        title: "Approved for implementation",
-        label: "plan-approved",
-        kind: ItemKind::Issue,
-    },
-    Section {
-        title: "PRs awaiting review",
-        label: "review-pending",
-        kind: ItemKind::Pr,
-    },
-    Section {
-        title: "PRs with review addressed",
-        label: "review-addressed",
-        kind: ItemKind::Pr,
-    },
-];
+fn sections(config: &Config) -> Vec<Section> {
+    vec![
+        Section {
+            title: "Issues awaiting planning",
+            label: config.labels.needs_plan.clone(),
+            kind: ItemKind::Issue,
+        },
+        Section {
+            title: "Plans ready for review",
+            label: config.labels.plan_ready.clone(),
+            kind: ItemKind::Issue,
+        },
+        Section {
+            title: "Approved for implementation",
+            label: config.labels.plan_approved.clone(),
+            kind: ItemKind::Issue,
+        },
+        Section {
+            title: "PRs awaiting review",
+            label: config.labels.review_pending.clone(),
+            kind: ItemKind::Pr,
+        },
+        Section {
+            title: "PRs with review addressed",
+            label: config.labels.review_addressed.clone(),
+            kind: ItemKind::Pr,
+        },
+    ]
+}
 
 pub fn run(ctx: &Context) -> Result<()> {
     let _root = ctx.repo.repo_root()?;
@@ -53,10 +56,10 @@ pub fn run(ctx: &Context) -> Result<()> {
 
     println!("\x1b[1mDagentic Pipeline Status\x1b[0m\n");
 
-    for section in SECTIONS {
+    for section in sections(ctx.config) {
         println!("\x1b[1m{}\x1b[0m ({}):", section.title, section.label);
         match &section.kind {
-            ItemKind::Issue => match ctx.host.list_issues(section.label) {
+            ItemKind::Issue => match ctx.host.list_issues(&section.label) {
                 Ok(issues) if issues.is_empty() => println!("  (none)"),
                 Ok(issues) => {
                     for issue in issues {
@@ -65,7 +68,7 @@ pub fn run(ctx: &Context) -> Result<()> {
                 }
                 Err(_) => println!("  (none)"),
             },
-            ItemKind::Pr => match ctx.host.list_prs(section.label) {
+            ItemKind::Pr => match ctx.host.list_prs(&section.label) {
                 Ok(prs) if prs.is_empty() => println!("  (none)"),
                 Ok(prs) => {
                     for pr in prs {
@@ -84,6 +87,7 @@ pub fn run(ctx: &Context) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::Config;
     use crate::context::Context;
     use crate::fs::fake::FakeFs;
     use crate::gh::Issue;
@@ -91,16 +95,27 @@ mod tests {
     use crate::git::fake::FakeGitRepo;
     use std::path::PathBuf;
 
+    fn default_ctx<'a>(
+        fs: &'a FakeFs,
+        host: &'a FakeGitHost,
+        repo: &'a FakeGitRepo,
+        config: &'a Config,
+    ) -> Context<'a> {
+        Context {
+            config,
+            fs,
+            host,
+            repo,
+        }
+    }
+
     #[test]
     fn status_runs_with_empty_results() {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(PathBuf::from("/repo"));
-        let ctx = Context {
-            fs: &fs,
-            host: &host,
-            repo: &repo,
-        };
+        let config = Config::default();
+        let ctx = default_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
     }
@@ -117,11 +132,8 @@ mod tests {
             ..FakeGitHost::new()
         };
         let repo = FakeGitRepo::github(PathBuf::from("/repo"));
-        let ctx = Context {
-            fs: &fs,
-            host: &host,
-            repo: &repo,
-        };
+        let config = Config::default();
+        let ctx = default_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
     }

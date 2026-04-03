@@ -25,7 +25,7 @@ pub fn run(ctx: &Context) -> Result<()> {
     print_install_result(&issue_result);
 
     println!("\nSyncing labels...");
-    for (name, result) in labels::create_all(ctx.host) {
+    for (name, result) in labels::create_all(ctx.host, ctx.config) {
         match result {
             Ok(()) => println!("  {name}"),
             Err(e) => eprintln!("  Warning: could not create label '{name}': {e}"),
@@ -59,6 +59,7 @@ fn print_install_result(result: &templates::InstallResult) {
 mod tests {
     use super::*;
     use crate::commands::init;
+    use crate::config::Config;
     use crate::context::Context;
     use crate::fs::Filesystem;
     use crate::fs::fake::FakeFs;
@@ -75,7 +76,9 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
+        let config = Config::default();
         let ctx = Context {
+            config: &config,
             fs: &fs,
             host: &host,
             repo: &repo,
@@ -91,7 +94,9 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
+        let config = Config::default();
         let ctx = Context {
+            config: &config,
             fs: &fs,
             host: &host,
             repo: &repo,

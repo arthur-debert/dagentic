@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 mod context;
 mod fs;
 mod gh;
@@ -7,6 +8,7 @@ mod labels;
 mod templates;
 
 use clap::{Parser, Subcommand};
+use config::Config;
 use context::Context;
 use fs::RealFs;
 use gh::GhCli;
@@ -37,10 +39,12 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
+    let config = Config::default();
     let fs = RealFs;
     let host = GhCli;
     let repo = GitCli;
     let ctx = Context {
+        config: &config,
         fs: &fs,
         host: &host,
         repo: &repo,
