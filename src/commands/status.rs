@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::DagenticConfig;
 use crate::context::Context;
 use crate::git;
 use anyhow::{Result, bail};
@@ -14,7 +14,7 @@ enum ItemKind {
     Pr,
 }
 
-fn sections(config: &Config) -> Vec<Section> {
+fn sections(config: &DagenticConfig) -> Vec<Section> {
     vec![
         Section {
             title: "Issues awaiting planning",
@@ -87,7 +87,7 @@ pub fn run(ctx: &Context) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Config;
+    use crate::config::DagenticConfig;
     use crate::context::Context;
     use crate::fs::fake::FakeFs;
     use crate::gh::Issue;
@@ -99,7 +99,7 @@ mod tests {
         fs: &'a FakeFs,
         host: &'a FakeGitHost,
         repo: &'a FakeGitRepo,
-        config: &'a Config,
+        config: &'a DagenticConfig,
     ) -> Context<'a> {
         Context {
             config,
@@ -114,7 +114,7 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(PathBuf::from("/repo"));
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let ctx = default_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
@@ -132,7 +132,7 @@ mod tests {
             ..FakeGitHost::new()
         };
         let repo = FakeGitRepo::github(PathBuf::from("/repo"));
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let ctx = default_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();

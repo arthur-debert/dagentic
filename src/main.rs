@@ -8,7 +8,8 @@ mod labels;
 mod templates;
 
 use clap::{Parser, Subcommand};
-use config::Config;
+use clapfig::{Boundary, Clapfig, SearchPath};
+use config::DagenticConfig;
 use context::Context;
 use fs::RealFs;
 use gh::GhCli;
@@ -39,7 +40,14 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
-    let config = Config::default();
+    let config: DagenticConfig = Clapfig::builder()
+        .app_name("dagentic")
+        .search_paths(vec![SearchPath::Ancestors(Boundary::Marker(".git"))])
+        .load()
+        .unwrap_or_else(|e| {
+            eprintln!("Warning: could not load config: {e}");
+            DagenticConfig::default()
+        });
     let fs = RealFs;
     let host = GhCli;
     let repo = GitCli;

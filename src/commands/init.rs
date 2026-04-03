@@ -80,7 +80,7 @@ fn print_install_result(result: &templates::InstallResult) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Config;
+    use crate::config::DagenticConfig;
     use crate::context::Context;
     use crate::fs::fake::FakeFs;
     use crate::gh::fake::FakeGitHost;
@@ -95,7 +95,7 @@ mod tests {
         fs: &'a FakeFs,
         host: &'a FakeGitHost,
         repo: &'a FakeGitRepo,
-        config: &'a Config,
+        config: &'a DagenticConfig,
     ) -> Context<'a> {
         Context {
             config,
@@ -110,7 +110,7 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new().with_secret("ANTHROPIC_API_KEY");
         let repo = FakeGitRepo::github(root());
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let ctx = make_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
@@ -127,7 +127,7 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let ctx = make_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
@@ -144,7 +144,7 @@ mod tests {
         let fs = FakeFs::new();
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let ctx = make_ctx(&fs, &host, &repo, &config);
 
         run(&ctx).unwrap();
@@ -163,7 +163,7 @@ mod tests {
             root: root(),
             remote: "git@gitlab.com:user/repo.git".to_string(),
         };
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let ctx = make_ctx(&fs, &host, &repo, &config);
 
         let err = run(&ctx).unwrap_err();
@@ -175,7 +175,7 @@ mod tests {
         let fs = FakeFs::new().with_file(root().join("CLAUDE.md"), "# My project");
         let host = FakeGitHost::new();
         let repo = FakeGitRepo::github(root());
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let ctx = make_ctx(&fs, &host, &repo, &config);
 
         // Should not error — CLAUDE.md is found

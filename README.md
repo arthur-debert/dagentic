@@ -101,7 +101,20 @@ This creates the required labels, copies the workflow files and issue templates 
 
 The primary agent reads your repo's `CLAUDE.md` for project-specific conventions: branching strategy, testing commands, code style, and anything else the agent should know. See the [example](https://github.com/arthur-debert/seer/blob/main/CLAUDE.md) for the expected format.
 
-### 4. Create your first issue
+### 4. (Optional) Customize label names
+
+If the default labels clash with your repo conventions, create a `.dagentic.toml` in your repo root:
+
+```toml
+[labels]
+needs_plan = "dagentic:needs-plan"
+plan_ready = "dagentic:plan-ready"
+feature = "dagentic:feature"
+```
+
+Only specify what you want to override. See all defaults under [Labels](#labels).
+
+### 5. Create your first issue
 
 Use one of the issue templates (feature, bug, or epic). The `status: needs-plan` label is applied automatically, and the pipeline starts.
 

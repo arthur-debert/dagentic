@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::DagenticConfig;
 use crate::fs::Filesystem;
 use anyhow::{Context, Result};
 use include_dir::{Dir, include_dir};
@@ -40,7 +40,7 @@ impl InstallResult {
     }
 }
 
-fn substitute(template: &str, config: &Config) -> String {
+fn substitute(template: &str, config: &DagenticConfig) -> String {
     let labels = &config.labels;
     template
         .replace("{{needs_plan}}", &labels.needs_plan)
@@ -57,7 +57,7 @@ pub fn install(
     fs: &dyn Filesystem,
     set: &TemplateSet,
     repo_root: &Path,
-    config: &Config,
+    config: &DagenticConfig,
 ) -> Result<InstallResult> {
     let dest = repo_root.join(set.dest_subdir());
     fs.create_dir_all(&dest)
@@ -102,7 +102,7 @@ pub fn install(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Config;
+    use crate::config::DagenticConfig;
     use crate::fs::fake::FakeFs;
     use std::path::PathBuf;
 
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn install_creates_files_in_correct_directory() {
         let fs = FakeFs::new();
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let result = install(&fs, &TemplateSet::Caller, &root(), &config).unwrap();
 
         assert_eq!(result.created.len(), 4, "should create 4 caller templates");
@@ -129,7 +129,7 @@ mod tests {
     #[test]
     fn install_issue_templates() {
         let fs = FakeFs::new();
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let result = install(&fs, &TemplateSet::Issue, &root(), &config).unwrap();
 
         assert_eq!(result.created.len(), 3, "should create 3 issue templates");
@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn install_detects_unchanged() {
         let fs = FakeFs::new();
-        let config = Config::default();
+        let config = DagenticConfig::default();
         install(&fs, &TemplateSet::Caller, &root(), &config).unwrap();
 
         let result = install(&fs, &TemplateSet::Caller, &root(), &config).unwrap();
@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn install_detects_updated() {
         let fs = FakeFs::new();
-        let config = Config::default();
+        let config = DagenticConfig::default();
         install(&fs, &TemplateSet::Caller, &root(), &config).unwrap();
 
         // Tamper with one file
@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn substitution_replaces_placeholders() {
-        let mut config = Config::default();
+        let mut config = DagenticConfig::default();
         config.labels.needs_plan = "custom-needs-plan".into();
 
         let input = "label == '{{needs_plan}}'";
@@ -179,7 +179,7 @@ mod tests {
     #[test]
     fn install_with_custom_config_writes_substituted_content() {
         let fs = FakeFs::new();
-        let mut config = Config::default();
+        let mut config = DagenticConfig::default();
         config.labels.needs_plan = "my-needs-plan".into();
 
         install(&fs, &TemplateSet::Caller, &root(), &config).unwrap();

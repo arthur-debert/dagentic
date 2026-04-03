@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::DagenticConfig;
 use crate::gh::GitHost;
 use anyhow::Result;
 
@@ -8,7 +8,7 @@ struct LabelDef {
     description: &'static str,
 }
 
-fn label_defs(config: &Config) -> Vec<LabelDef> {
+fn label_defs(config: &DagenticConfig) -> Vec<LabelDef> {
     vec![
         LabelDef {
             name: config.labels.needs_plan.clone(),
@@ -53,7 +53,7 @@ fn label_defs(config: &Config) -> Vec<LabelDef> {
     ]
 }
 
-pub fn create_all(host: &dyn GitHost, config: &Config) -> Vec<(String, Result<()>)> {
+pub fn create_all(host: &dyn GitHost, config: &DagenticConfig) -> Vec<(String, Result<()>)> {
     label_defs(config)
         .into_iter()
         .map(|l| {
@@ -66,11 +66,11 @@ pub fn create_all(host: &dyn GitHost, config: &Config) -> Vec<(String, Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Config;
+    use crate::config::DagenticConfig;
 
     #[test]
     fn all_labels_have_valid_hex_colors() {
-        let config = Config::default();
+        let config = DagenticConfig::default();
         for label in label_defs(&config) {
             assert_eq!(label.color.len(), 6, "bad color for '{}'", label.name);
             assert!(
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn no_duplicate_labels() {
-        let config = Config::default();
+        let config = DagenticConfig::default();
         let names: Vec<_> = label_defs(&config).iter().map(|l| l.name.clone()).collect();
         for (i, name) in names.iter().enumerate() {
             assert!(!names[i + 1..].contains(name), "duplicate label: {}", name);
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn expected_label_count() {
-        let config = Config::default();
+        let config = DagenticConfig::default();
         assert_eq!(label_defs(&config).len(), 8);
     }
 }
