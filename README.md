@@ -1,84 +1,131 @@
 # Dagentic
 
-Reusable GitHub Actions workflows for AI-assisted development.
+Dagentic is a simple yet capable system for orchestrating a fully fledged agentic development workflow that is easy to run, manage, and reason about.
 
-Issue → Planning (Opus) → User approval → Implementation (Sonnet) → Copilot review → AI fixup → User merges.
+Its core feature is simplicity: freeing you from the manual, repetitive cycle of original idea / problem, planning, reviewed planning, approval, development, code review, review fixes, final review, and human merge.
 
-## What's in the box
+**Features:**
 
-**Reusable workflows** (`.github/workflows/`):
+- Only requires a GitHub repo with Copilot and your primary agent's API key.
+- Leverages GitHub for workflow orchestration, logging, and events (PRs, issues, branches).
+- High-level human touchpoints: initial task description, plan approval, and final merge. The first two happen on GitHub issues with predefined labels; the last one at the PR.
+- Planning, execution, and review use different models for best-of-breed results and to avoid single-model bias missing issues.
+- Base prompts plus project-specific additions via your repo's `CLAUDE.md`.
 
-| Workflow | Trigger | What it does |
-|----------|---------|-------------|
-| `plan.yml` | `workflow_call` | Reads issue, posts plan comment, swaps labels |
-| `implement.yml` | `workflow_call` | Creates branch, implements, opens draft PR |
-| `copilot-review.yml` | `workflow_call` | Requests Copilot as PR reviewer |
-| `review-fixup.yml` | `workflow_call` | Addresses review comments, pushes fixes |
+Agentic coding workflow orchestration can be incredibly feature-rich, configurable, and complex. Dagentic isn't any of that. Instead it is:
 
-**Caller templates** (`caller-templates/`): Thin workflow files you copy into your repo.
+- A core, no-nonsense, predefined workflow that minimizes user input but keeps you in the loop at the critical points: defining the task, approving the plan, and merging the result.
+- GitHub issues are used to trigger planning (by adding the `status: needs-plan` label). Issue comments iterate agent/human clarifications and changes to the plan, and a label signals ready for development.
+- The final work, including a secondary agent model review and fixup, ends up as a GitHub PR for you to merge. PR comments are used to request clarifications and changes.
 
-**Issue templates** (`issue-templates/`): Feature, bug, and epic templates with auto-labels.
+## How it works
 
-## Setup
+You open a GitHub issue describing what you want. From there, the pipeline takes over:
 
-### 1. Set your Anthropic API key
-
-```bash
-gh secret set ANTHROPIC_API_KEY -R your-org/your-repo
+```
+You create issue        "Add pagination to the API"
+        |
+        v
+  [status: needs-plan]  (auto-labeled by issue template)
+        |
+        v
+  Planning agent         Opus reads the issue, posts a detailed plan
+  posts plan comment     as a comment, labels the issue plan-ready.
+        |
+        v
+  [status: plan-ready]
+        |
+    You review the plan. Comment to iterate.
+    When satisfied, swap the label:
+        |
+        v
+  [status: plan-approved]
+        |
+        v
+  Implementation agent   Sonnet creates a branch, implements the plan,
+  opens draft PR         and opens a draft PR.
+        |
+        v
+  [pr: review-pending]
+        |
+        v
+  Copilot review         Copilot is automatically requested as a
+                         reviewer on the PR.
+        |
+        v
+  Review fixup agent     Sonnet reads review comments, pushes fixes
+                         or replies with reasoning.
+        |
+        v
+  You review and merge   The PR is yours to approve and merge.
 ```
 
-### 2. Copy caller workflows
+Three points require your attention. Everything else is automatic:
 
-```bash
-cp caller-templates/*.yml your-repo/.github/workflows/
-```
-
-### 3. Copy issue templates
-
-```bash
-mkdir -p your-repo/.github/ISSUE_TEMPLATE
-cp issue-templates/*.yml your-repo/.github/ISSUE_TEMPLATE/
-```
-
-### 4. Create labels
-
-Your repo needs these labels (create them once):
-
-```bash
-gh label create "status: needs-plan" --color c5def5 -R your-org/your-repo
-gh label create "status: plan-ready" --color 0e8a16 -R your-org/your-repo
-gh label create "status: plan-approved" --color 0e8a16 -R your-org/your-repo
-gh label create "pr: review-pending" --color fbca04 -R your-org/your-repo
-gh label create "pr: review-addressed" --color 0e8a16 -R your-org/your-repo
-gh label create "type: feature" --color a2eeef -R your-org/your-repo
-gh label create "type: bug" --color d73a4a -R your-org/your-repo
-gh label create "type: epic" --color 5319e7 -R your-org/your-repo
-```
-
-### 5. Add a CLAUDE.md
-
-The agent reads your repo's `CLAUDE.md` for project-specific conventions (branching, testing commands, code style). See the [planning section format](https://github.com/arthur-debert/seer/blob/main/CLAUDE.md) for an example.
-
-## End-to-end flow
-
-1. **Create issue** using a template — auto-labels `status: needs-plan`
-2. **Planning** (automatic) — Opus reads issue, posts plan, labels `status: plan-ready`
-3. **Review plan** (you) — swap label to `status: plan-approved`
-4. **Implementation** (automatic) — Sonnet implements, opens draft PR with `pr: review-pending`
-5. **Copilot review** (automatic) — requests Copilot as reviewer
-6. **Review fixup** (automatic) — Sonnet addresses review comments
-7. **Merge** (you) — review the PR and merge
+1. **Write the issue** -- describe what you want built or fixed.
+2. **Approve the plan** -- swap the label from `plan-ready` to `plan-approved`.
+3. **Merge the PR** -- review the final result and merge.
 
 ## Requirements
 
-- GitHub repo (public or private)
-- `ANTHROPIC_API_KEY` secret
-- Copilot code review enabled on the repo (requires Copilot Enterprise/Business)
+- A GitHub repository (public or private).
+- An `ANTHROPIC_API_KEY` stored as a repository secret.
+- Copilot code review enabled on the repo (requires Copilot Enterprise or Business).
+
+## Setup
+
+### 1. Install the CLI
+
+```bash
+gh extension install arthur-debert/gh-dagentic
+```
+
+### 2. Initialize your repo
+
+```bash
+gh dagentic init
+```
+
+This creates the required labels, copies the workflow files and issue templates into your repo, and guides you through setting your API key.
+
+### 3. Add a CLAUDE.md
+
+The agent reads your repo's `CLAUDE.md` for project-specific conventions: branching strategy, testing commands, code style, and anything else the agent should know. See the [example](https://github.com/arthur-debert/seer/blob/main/CLAUDE.md) for the expected format.
+
+### 4. Create your first issue
+
+Use one of the issue templates (feature, bug, or epic). The `status: needs-plan` label is applied automatically, and the pipeline starts.
 
 ## Architecture
 
-The review-fixup caller uses a two-stage relay pattern:
-- Stage 1 runs in your repo on `pull_request_review` events, dispatches `workflow_dispatch`
-- Stage 2 calls the reusable workflow which runs `claude-code-action`
+Dagentic is built entirely on GitHub Actions reusable workflows. Your repo contains thin caller workflows that trigger on label and PR events. These call the reusable workflows hosted in this repository, which do the actual work.
 
-This works around [claude-code-action#900](https://github.com/anthropics/claude-code-action/issues/900) where bot actors are blocked before `allowed_bots` is checked.
+| Phase | Model | What happens |
+|-------|-------|-------------|
+| Planning | Claude Opus | Reads issue, posts plan comment, swaps labels |
+| Implementation | Claude Sonnet | Creates branch, implements plan, opens draft PR |
+| Code review | GitHub Copilot | Requested automatically as PR reviewer |
+| Review fixup | Claude Sonnet | Addresses review comments, pushes fixes |
+
+All compute runs on your GitHub Actions runners. All API calls use your `ANTHROPIC_API_KEY`. Nothing runs on or bills to Dagentic's infrastructure.
+
+The caller workflows in your repo are intentionally thin -- just event triggers and a `uses:` reference to this repo. When Dagentic is updated, your repo picks up changes automatically (callers reference `@main`). Pin to a release tag if you prefer stability over freshness.
+
+### The review-fixup relay
+
+The review-fixup caller uses a two-stage relay pattern. Stage 1 runs on `pull_request_review` events and dispatches a `workflow_dispatch`. Stage 2 calls the reusable workflow. This works around [claude-code-action#900](https://github.com/anthropics/claude-code-action/issues/900) where bot actors are blocked before `allowed_bots` is checked.
+
+## Labels
+
+Dagentic uses labels to drive the workflow. These are created automatically by `gh dagentic init`:
+
+| Label | Purpose |
+|-------|---------|
+| `status: needs-plan` | Triggers the planning agent |
+| `status: plan-ready` | Plan posted, waiting for your review |
+| `status: plan-approved` | You approved the plan, triggers implementation |
+| `pr: review-pending` | Draft PR opened, triggers Copilot review |
+| `pr: review-addressed` | Review comments addressed |
+| `type: feature` | Issue type |
+| `type: bug` | Issue type |
+| `type: epic` | Issue type (multi-PR planning) |

@@ -1,4 +1,4 @@
-# Copy to .github/workflows/claude-implement.yml in your repo.
+# Installed by gh-dagentic into .github/workflows/claude-implement.yml
 
 name: Claude Implementation
 
@@ -17,7 +17,7 @@ jobs:
       issues: write
       pull-requests: write
       id-token: write
-    uses: arthur-debert/dagentic/.github/workflows/implement.yml@main
+    uses: arthur-debert/gh-dagentic/.github/workflows/implement.yml@main
     with:
       issue_number: ${{ github.event.issue.number }}
     secrets:

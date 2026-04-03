@@ -1,8 +1,8 @@
-# Copy to .github/workflows/claude-review-fixup.yml in your repo.
+# Installed by gh-dagentic into .github/workflows/claude-review-fixup.yml
 #
 # Two-stage design: the relay job (pull_request_review -> workflow_dispatch)
 # must live here because reusable workflows can't define event triggers.
-# The fixup job calls the reusable workflow in dagentic.
+# The fixup job calls the reusable workflow in gh-dagentic.
 
 name: Claude Review Fixup
 
@@ -54,7 +54,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
-    uses: arthur-debert/dagentic/.github/workflows/review-fixup.yml@main
+    uses: arthur-debert/gh-dagentic/.github/workflows/review-fixup.yml@main
     with:
       pr_number: ${{ inputs.pr_number }}
       head_ref: ${{ inputs.head_ref }}
