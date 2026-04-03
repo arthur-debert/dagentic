@@ -1,0 +1,34 @@
+name: "[Dagentic] Planning"
+
+on:
+  workflow_call:
+    inputs:
+      issue_number:
+        required: true
+        type: number
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Read issue #${{ inputs.issue_number }} carefully.
+            Produce a plan as described in CLAUDE.md under "## Planning".
+            If the issue has label "type: epic", follow the epic planning procedure
+            described in CLAUDE.md under "## Multi-PR Epics".
+            When done: remove label "status: needs-plan" and add "status: plan-ready".
+          claude_args: --model claude-opus-4-6 --allowedTools Bash,Read,Write,Edit,Glob,Grep

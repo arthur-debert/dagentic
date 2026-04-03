@@ -1,0 +1,24 @@
+# Copy to .github/workflows/claude-implement.yml in your repo.
+
+name: Claude Implementation
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  implement:
+    if: >-
+      github.event.label.name == 'status: plan-approved'
+      && github.actor != 'github-actions[bot]'
+      && github.actor != 'claude[bot]'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    uses: arthur-debert/dagentic/.github/workflows/implement.yml@main
+    with:
+      issue_number: ${{ github.event.issue.number }}
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

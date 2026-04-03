@@ -1,0 +1,37 @@
+name: "[Dagentic] Implementation"
+
+on:
+  workflow_call:
+    inputs:
+      issue_number:
+        required: true
+        type: number
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: true
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Implement issue #${{ inputs.issue_number }}.
+            Follow all conventions in CLAUDE.md exactly.
+            If this issue is a phase of an epic, read the parent epic issue body
+            to determine the correct base branch before creating your branch.
+            State your branch target explicitly in your first PR comment.
+            Open the PR as a draft. Add label "pr: review-pending".
+          claude_args: --model claude-sonnet-4-6 --max-turns 30 --allowedTools Bash,Read,Write,Edit,Glob,Grep

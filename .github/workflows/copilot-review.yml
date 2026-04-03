@@ -1,0 +1,22 @@
+name: "[Dagentic] Copilot Review"
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+
+jobs:
+  request-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Request Copilot review
+        run: |
+          gh api repos/${{ github.repository }}/pulls/${{ inputs.pr_number }}/requested_reviewers \
+            -X POST -f 'reviewers[]=copilot-pull-request-reviewer[bot]'
+        env:
+          GH_TOKEN: ${{ github.token }}

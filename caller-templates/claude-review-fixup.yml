@@ -1,0 +1,62 @@
+# Copy to .github/workflows/claude-review-fixup.yml in your repo.
+#
+# Two-stage design: the relay job (pull_request_review -> workflow_dispatch)
+# must live here because reusable workflows can't define event triggers.
+# The fixup job calls the reusable workflow in dagentic.
+
+name: Claude Review Fixup
+
+on:
+  pull_request_review:
+    types: [submitted]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to fix up
+        required: true
+      head_ref:
+        description: Head branch ref
+        required: true
+
+jobs:
+  # Stage 1: relay review events to workflow_dispatch
+  relay:
+    if: >-
+      github.event_name == 'pull_request_review'
+      && (github.event.review.state == 'changes_requested' || github.event.review.state == 'commented')
+      && github.actor != 'github-actions[bot]'
+      && github.actor != 'claude[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Dispatch fixup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'claude-review-fixup.yml',
+              ref: 'main',
+              inputs: {
+                pr_number: String(context.payload.pull_request.number),
+                head_ref: context.payload.pull_request.head.ref
+              }
+            });
+
+  # Stage 2: fixup via reusable workflow
+  fixup:
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    uses: arthur-debert/dagentic/.github/workflows/review-fixup.yml@main
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      head_ref: ${{ inputs.head_ref }}
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

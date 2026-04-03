@@ -1,0 +1,34 @@
+name: Feature
+description: New feature or capability
+labels: ["type: feature", "status: needs-plan"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: Describe what this should do
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: Why is this needed / what problem does it solve
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: List the criteria for this feature to be considered done
+      value: |
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, screenshots, related issues
+    validations:
+      required: false

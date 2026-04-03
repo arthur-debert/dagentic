@@ -1,0 +1,17 @@
+# Copy to .github/workflows/copilot-review.yml in your repo.
+
+name: Request Copilot Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+
+jobs:
+  request-review:
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'pr: review-pending')
+    permissions:
+      pull-requests: write
+    uses: arthur-debert/dagentic/.github/workflows/copilot-review.yml@main
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
