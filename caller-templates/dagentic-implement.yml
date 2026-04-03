@@ -9,7 +9,7 @@ on:
 jobs:
   implement:
     if: >-
-      github.event.label.name == 'plan-approved'
+      github.event.label.name == '{{plan_approved}}'
       && github.actor != 'github-actions[bot]'
       && github.actor != 'claude[bot]'
     permissions:

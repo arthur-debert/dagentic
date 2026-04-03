@@ -9,7 +9,7 @@ on:
 jobs:
   request-review:
     if: >-
-      contains(github.event.pull_request.labels.*.name, 'review-pending')
+      contains(github.event.pull_request.labels.*.name, '{{review_pending}}')
     permissions:
       pull-requests: write
     uses: arthur-debert/gh-dagentic/.github/workflows/dagentic-review.yml@main

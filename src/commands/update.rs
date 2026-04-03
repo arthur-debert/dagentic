@@ -17,11 +17,11 @@ pub fn run(ctx: &Context) -> Result<()> {
     }
 
     println!("Updating workflow files...");
-    let caller_result = templates::install(ctx.fs, &TemplateSet::Caller, &root)?;
+    let caller_result = templates::install(ctx.fs, &TemplateSet::Caller, &root, ctx.config)?;
     print_install_result(&caller_result);
 
     println!("\nUpdating issue templates...");
-    let issue_result = templates::install(ctx.fs, &TemplateSet::Issue, &root)?;
+    let issue_result = templates::install(ctx.fs, &TemplateSet::Issue, &root, ctx.config)?;
     print_install_result(&issue_result);
 
     println!("\nSyncing labels...");

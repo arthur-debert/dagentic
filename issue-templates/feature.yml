@@ -1,6 +1,6 @@
 name: Feature
 description: New feature or capability
-labels: ["feature", "needs-plan"]
+labels: ["{{feature}}", "{{needs_plan}}"]
 body:
   - type: textarea
     id: what

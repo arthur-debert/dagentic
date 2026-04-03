@@ -1,6 +1,6 @@
 name: Epic
 description: Large piece of work requiring multiple PRs
-labels: ["epic", "needs-plan"]
+labels: ["{{epic}}", "{{needs_plan}}"]
 body:
   - type: textarea
     id: goal
