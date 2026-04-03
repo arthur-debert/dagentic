@@ -15,7 +15,7 @@ Its core feature is simplicity: freeing you from the manual, repetitive cycle of
 Agentic coding workflow orchestration can be incredibly feature-rich, configurable, and complex. Dagentic isn't any of that. Instead it is:
 
 - A core, no-nonsense, predefined workflow that minimizes user input but keeps you in the loop at the critical points: defining the task, approving the plan, and merging the result.
-- GitHub issues are used to trigger planning (by adding the `status: needs-plan` label). Issue comments iterate agent/human clarifications and changes to the plan, and a label signals ready for development.
+- GitHub issues are used to trigger planning (by adding the `needs-plan` label). Issue comments iterate agent/human clarifications and changes to the plan, and a label signals ready for development.
 - The final work, including a secondary agent review and fixup, ends up as a GitHub PR for you to merge. PR comments are used to request clarifications and changes.
 
 ## Agents
@@ -35,27 +35,27 @@ You open a GitHub issue describing what you want. From there, the pipeline takes
 You create issue        "Add pagination to the API"
         |
         v
-  [status: needs-plan]  (auto-labeled by issue template)
+  [needs-plan]           (auto-labeled by issue template)
         |
         v
   Planning agent         Primary agent reads the issue, posts a detailed
   posts plan comment     plan as a comment, labels the issue plan-ready.
         |
         v
-  [status: plan-ready]
+  [plan-ready]
         |
     You review the plan. Comment to iterate.
     When satisfied, swap the label:
         |
         v
-  [status: plan-approved]
+  [plan-approved]
         |
         v
   Implementation agent   Primary agent creates a branch, implements
   opens draft PR         the plan, and opens a draft PR.
         |
         v
-  [pr: review-pending]
+  [review-pending]
         |
         v
   Side agent review      Side agent is automatically requested as a
@@ -130,14 +130,14 @@ Dagentic uses labels to drive the workflow. These are created automatically by `
 
 | Label | Purpose |
 |-------|---------|
-| `status: needs-plan` | Triggers the planning agent |
-| `status: plan-ready` | Plan posted, waiting for your review |
-| `status: plan-approved` | You approved the plan, triggers implementation |
-| `pr: review-pending` | Draft PR opened, triggers side agent review |
-| `pr: review-addressed` | Review comments addressed |
-| `type: feature` | Issue type |
-| `type: bug` | Issue type |
-| `type: epic` | Issue type (multi-PR planning) |
+| `needs-plan` | Triggers the planning agent |
+| `plan-ready` | Plan posted, waiting for your review |
+| `plan-approved` | You approved the plan, triggers implementation |
+| `review-pending` | Draft PR opened, triggers side agent review |
+| `review-addressed` | Review comments addressed |
+| `feature` | Issue type |
+| `bug` | Issue type |
+| `epic` | Issue type (multi-PR planning) |
 
 ## Development
 

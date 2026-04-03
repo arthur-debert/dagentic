@@ -33,5 +33,5 @@ jobs:
             If this issue is a phase of an epic, read the parent epic issue body
             to determine the correct base branch before creating your branch.
             State your branch target explicitly in your first PR comment.
-            Open the PR as a draft. Add label "pr: review-pending".
+            Open the PR as a draft. Add label "review-pending".
           claude_args: --model claude-sonnet-4-6 --max-turns 30 --allowedTools Bash,Read,Write,Edit,Glob,Grep

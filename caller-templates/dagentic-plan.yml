@@ -1,4 +1,4 @@
-# Installed by gh-dagentic into .github/workflows/main-agent-plan.yml
+# Installed by gh-dagentic into .github/workflows/dagentic-plan.yml
 
 name: "[Dagentic] Planning"
 
@@ -9,7 +9,7 @@ on:
 jobs:
   plan:
     if: >-
-      github.event.label.name == 'status: needs-plan'
+      github.event.label.name == 'needs-plan'
       && github.actor != 'github-actions[bot]'
       && github.actor != 'claude[bot]'
     permissions:

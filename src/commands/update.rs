@@ -100,7 +100,7 @@ mod tests {
         init::run(&ctx).unwrap();
 
         // Tamper with a file
-        let path = root().join(".github/workflows/main-agent-plan.yml");
+        let path = root().join(".github/workflows/dagentic-plan.yml");
         fs.write_file(&path, b"modified").unwrap();
 
         run(&ctx).unwrap();

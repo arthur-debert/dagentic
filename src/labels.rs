@@ -9,42 +9,42 @@ pub struct Label {
 
 pub const LABELS: &[Label] = &[
     Label {
-        name: "status: needs-plan",
+        name: "needs-plan",
         color: "c5def5",
         description: "Triggers the planning agent",
     },
     Label {
-        name: "status: plan-ready",
+        name: "plan-ready",
         color: "0e8a16",
         description: "Plan posted, awaiting human review",
     },
     Label {
-        name: "status: plan-approved",
+        name: "plan-approved",
         color: "5319e7",
         description: "Plan approved, triggers implementation",
     },
     Label {
-        name: "pr: review-pending",
+        name: "review-pending",
         color: "fbca04",
         description: "Draft PR opened, triggers side agent review",
     },
     Label {
-        name: "pr: review-addressed",
+        name: "review-addressed",
         color: "0e8a16",
         description: "Review comments addressed",
     },
     Label {
-        name: "type: feature",
+        name: "feature",
         color: "a2eeef",
         description: "Feature request",
     },
     Label {
-        name: "type: bug",
+        name: "bug",
         color: "d73a4a",
         description: "Bug report",
     },
     Label {
-        name: "type: epic",
+        name: "epic",
         color: "f9d0c4",
         description: "Multi-PR epic",
     },

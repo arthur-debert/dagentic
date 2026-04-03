@@ -1,0 +1,17 @@
+# Installed by gh-dagentic into .github/workflows/dagentic-review.yml
+
+name: "[Dagentic] Review"
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+
+jobs:
+  request-review:
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'review-pending')
+    permissions:
+      pull-requests: write
+    uses: arthur-debert/gh-dagentic/.github/workflows/dagentic-review.yml@main
+    with:
+      pr_number: ${{ github.event.pull_request.number }}

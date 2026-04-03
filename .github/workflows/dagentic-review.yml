@@ -1,4 +1,4 @@
-name: "[Dagentic] Side Agent Review"
+name: "[Dagentic] Review"
 
 on:
   workflow_call:

@@ -1,6 +1,6 @@
 name: Feature
 description: New feature or capability
-labels: ["type: feature", "status: needs-plan"]
+labels: ["feature", "needs-plan"]
 body:
   - type: textarea
     id: what

@@ -28,7 +28,7 @@ jobs:
           prompt: |
             Read issue #${{ inputs.issue_number }} carefully.
             Produce a plan as described in CLAUDE.md under "## Planning".
-            If the issue has label "type: epic", follow the epic planning procedure
+            If the issue has label "epic", follow the epic planning procedure
             described in CLAUDE.md under "## Multi-PR Epics".
-            When done: remove label "status: needs-plan" and add "status: plan-ready".
+            When done: remove label "needs-plan" and add "plan-ready".
           claude_args: --model claude-opus-4-6 --allowedTools Bash,Read,Write,Edit,Glob,Grep

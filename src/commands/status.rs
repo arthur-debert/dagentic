@@ -16,27 +16,27 @@ enum ItemKind {
 const SECTIONS: &[Section] = &[
     Section {
         title: "Issues awaiting planning",
-        label: "status: needs-plan",
+        label: "needs-plan",
         kind: ItemKind::Issue,
     },
     Section {
         title: "Plans ready for review",
-        label: "status: plan-ready",
+        label: "plan-ready",
         kind: ItemKind::Issue,
     },
     Section {
         title: "Approved for implementation",
-        label: "status: plan-approved",
+        label: "plan-approved",
         kind: ItemKind::Issue,
     },
     Section {
         title: "PRs awaiting review",
-        label: "pr: review-pending",
+        label: "review-pending",
         kind: ItemKind::Pr,
     },
     Section {
         title: "PRs with review addressed",
-        label: "pr: review-addressed",
+        label: "review-addressed",
         kind: ItemKind::Pr,
     },
 ];

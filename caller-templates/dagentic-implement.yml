@@ -1,4 +1,4 @@
-# Installed by gh-dagentic into .github/workflows/main-agent-implement.yml
+# Installed by gh-dagentic into .github/workflows/dagentic-implement.yml
 
 name: "[Dagentic] Implementation"
 
@@ -9,7 +9,7 @@ on:
 jobs:
   implement:
     if: >-
-      github.event.label.name == 'status: plan-approved'
+      github.event.label.name == 'plan-approved'
       && github.actor != 'github-actions[bot]'
       && github.actor != 'claude[bot]'
     permissions:

@@ -120,10 +120,10 @@ mod tests {
         run(&ctx).unwrap();
 
         let files = fs.files.borrow();
-        assert!(files.contains_key(&root().join(".github/workflows/main-agent-plan.yml")));
-        assert!(files.contains_key(&root().join(".github/workflows/main-agent-implement.yml")));
-        assert!(files.contains_key(&root().join(".github/workflows/main-agent-review-fixup.yml")));
-        assert!(files.contains_key(&root().join(".github/workflows/side-agent-review.yml")));
+        assert!(files.contains_key(&root().join(".github/workflows/dagentic-plan.yml")));
+        assert!(files.contains_key(&root().join(".github/workflows/dagentic-implement.yml")));
+        assert!(files.contains_key(&root().join(".github/workflows/dagentic-review-fixup.yml")));
+        assert!(files.contains_key(&root().join(".github/workflows/dagentic-review.yml")));
     }
 
     #[test]

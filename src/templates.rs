@@ -130,12 +130,12 @@ mod tests {
         install(&fs, &TemplateSet::Caller, &root()).unwrap();
 
         // Tamper with one file
-        let path = root().join(".github/workflows/main-agent-plan.yml");
+        let path = root().join(".github/workflows/dagentic-plan.yml");
         fs.write_file(&path, b"modified").unwrap();
 
         let result = install(&fs, &TemplateSet::Caller, &root()).unwrap();
         assert_eq!(result.updated.len(), 1);
         assert_eq!(result.unchanged.len(), 3);
-        assert!(result.updated.contains(&"main-agent-plan.yml".to_string()));
+        assert!(result.updated.contains(&"dagentic-plan.yml".to_string()));
     }
 }
