@@ -5,6 +5,8 @@ mod fs;
 mod gh;
 mod git;
 mod labels;
+#[allow(dead_code)] // Used by upcoming show/stats commands
+mod metadata;
 mod templates;
 
 use clap::{Parser, Subcommand};
