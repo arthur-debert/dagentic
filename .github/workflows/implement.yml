@@ -34,4 +34,6 @@ jobs:
             to determine the correct base branch before creating your branch.
             State your branch target explicitly in your first PR comment.
             Open the PR as a draft. Add label "review-pending".
+            As the very last line of your comment, add a metadata line in exactly this format (it will be hidden in the GitHub UI):
+            <!-- dagentic:phase=implementation tokens_in=INPUT_TOKENS tokens_out=OUTPUT_TOKENS model=MODEL_USED -->
           claude_args: --model claude-sonnet-4-6 --max-turns 30 --allowedTools Bash,Read,Write,Edit,Glob,Grep

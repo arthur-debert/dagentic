@@ -31,4 +31,6 @@ jobs:
             If the issue has label "epic", follow the epic planning procedure
             described in CLAUDE.md under "## Multi-PR Epics".
             When done: remove label "needs-plan" and add "plan-ready".
+            As the very last line of your comment, add a metadata line in exactly this format (it will be hidden in the GitHub UI):
+            <!-- dagentic:phase=planning tokens_in=INPUT_TOKENS tokens_out=OUTPUT_TOKENS model=MODEL_USED -->
           claude_args: --model claude-opus-4-6 --allowedTools Bash,Read,Write,Edit,Glob,Grep

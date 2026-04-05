@@ -40,4 +40,6 @@ jobs:
             For each comment: implement the suggested fix, OR reply explaining why you are
             not implementing it (be specific, not dismissive).
             Push your changes. Update labels per CLAUDE.md conventions.
+            As the very last line of your comment, add a metadata line in exactly this format (it will be hidden in the GitHub UI):
+            <!-- dagentic:phase=review-fixup tokens_in=INPUT_TOKENS tokens_out=OUTPUT_TOKENS model=MODEL_USED -->
           claude_args: --model claude-sonnet-4-6 --max-turns 20 --allowedTools Bash,Read,Write,Edit,Glob,Grep
