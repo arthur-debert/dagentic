@@ -1,6 +1,8 @@
-/// Parse dagentic metadata from HTML comments in issue/PR comments.
-///
-/// Format: `<!-- dagentic:phase=planning tokens_in=1234 tokens_out=567 model=claude-opus-4-6 -->`
+//! Parse dagentic metadata from HTML comments in issue/PR comments.
+//!
+//! Format: `<!-- dagentic:phase=planning tokens_in=1234 tokens_out=567 model=claude-opus-4-6 -->`
+
+use crate::pipeline::Step;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PhaseMetadata {
@@ -15,6 +17,19 @@ pub fn parse_comment(body: &str) -> Vec<PhaseMetadata> {
     body.lines()
         .filter_map(|line| parse_metadata_line(line.trim()))
         .collect()
+}
+
+#[allow(dead_code)]
+pub fn step_from_phase(phase: &str) -> Option<Step> {
+    match phase {
+        "assess" | "assessment" => Some(Step::Assess),
+        "spec" | "specification" => Some(Step::Spec),
+        "planning" | "plan" => Some(Step::Plan),
+        "implementation" | "implement" => Some(Step::Implement),
+        "review" => Some(Step::Review),
+        "review-fixup" | "fixup" => Some(Step::Fixup),
+        _ => None,
+    }
 }
 
 fn parse_metadata_line(line: &str) -> Option<PhaseMetadata> {

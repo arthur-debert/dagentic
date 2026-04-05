@@ -51,6 +51,16 @@ fn substitute(template: &str, config: &DagenticConfig) -> String {
         .replace("{{feature}}", &labels.feature)
         .replace("{{bug}}", &labels.bug)
         .replace("{{epic}}", &labels.epic)
+        .replace("{{needs_assess}}", &labels.needs_assess)
+        .replace("{{assess_ready}}", &labels.assess_ready)
+        .replace("{{assess_approved}}", &labels.assess_approved)
+        .replace("{{needs_spec}}", &labels.needs_spec)
+        .replace("{{spec_ready}}", &labels.spec_ready)
+        .replace("{{spec_approved}}", &labels.spec_approved)
+        .replace("{{flow_assess}}", &labels.flow_assess)
+        .replace("{{flow_spec}}", &labels.flow_spec)
+        .replace("{{flow_full}}", &labels.flow_full)
+        .replace("{{flow_implement}}", &labels.flow_implement)
 }
 
 pub fn install(

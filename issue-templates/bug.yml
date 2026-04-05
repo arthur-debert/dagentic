@@ -1,6 +1,6 @@
 name: Bug
 description: Something is broken
-labels: ["{{bug}}", "{{needs_plan}}"]
+labels: ["{{bug}}", "{{needs_plan}}", "{{flow_full}}"]
 body:
   - type: textarea
     id: broken

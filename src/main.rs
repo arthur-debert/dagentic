@@ -42,6 +42,9 @@ enum Commands {
         /// Filter by stage: planning, planned, approved, coding, review, done, abandoned
         #[arg(long)]
         stage: Option<String>,
+        /// Filter by flow: assess, spec, full, implement
+        #[arg(long)]
+        flow: Option<String>,
     },
     /// Show details for a specific task (issue number)
     Show {
@@ -75,9 +78,12 @@ fn main() {
     let result = match cli.command {
         Some(Commands::Init) => commands::init::run(&ctx),
         Some(Commands::Update) => commands::update::run(&ctx),
-        Some(Commands::List { ref stage }) => commands::list::run(&ctx, stage.as_deref()),
+        Some(Commands::List {
+            ref stage,
+            ref flow,
+        }) => commands::list::run(&ctx, stage.as_deref(), flow.as_deref()),
         Some(Commands::Show { issue }) => commands::show::run(&ctx, issue),
-        Some(Commands::Status) => commands::list::run(&ctx, None),
+        Some(Commands::Status) => commands::list::run(&ctx, None, None),
         None => {
             Cli::parse_from(["gh-dagentic", "--help"]);
             Ok(())
