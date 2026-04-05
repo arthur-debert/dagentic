@@ -34,6 +34,48 @@ pub struct LabelConfig {
     /// Label for epic issues
     #[config(default = "epic")]
     pub epic: String,
+
+    // -- Step labels (assess & spec steps, used in Phase 2+) --
+    /// Label that triggers the assess agent
+    #[config(default = "needs-assess")]
+    pub needs_assess: String,
+
+    /// Label set when assessment is posted and awaiting review
+    #[config(default = "assess-ready")]
+    pub assess_ready: String,
+
+    /// Label set when assessment is approved
+    #[config(default = "assess-approved")]
+    pub assess_approved: String,
+
+    /// Label that triggers the spec agent
+    #[config(default = "needs-spec")]
+    pub needs_spec: String,
+
+    /// Label set when spec is posted and awaiting review
+    #[config(default = "spec-ready")]
+    pub spec_ready: String,
+
+    /// Label set when spec is approved
+    #[config(default = "spec-approved")]
+    pub spec_approved: String,
+
+    // -- Flow type labels --
+    /// Label marking a task as assess-only flow
+    #[config(default = "flow:assess")]
+    pub flow_assess: String,
+
+    /// Label marking a task as assess+spec flow
+    #[config(default = "flow:spec")]
+    pub flow_spec: String,
+
+    /// Label marking a task as full pipeline flow
+    #[config(default = "flow:full")]
+    pub flow_full: String,
+
+    /// Label marking a task as implement-only flow
+    #[config(default = "flow:implement")]
+    pub flow_implement: String,
 }
 
 impl Default for LabelConfig {
@@ -47,6 +89,16 @@ impl Default for LabelConfig {
             feature: "feature".into(),
             bug: "bug".into(),
             epic: "epic".into(),
+            needs_assess: "needs-assess".into(),
+            assess_ready: "assess-ready".into(),
+            assess_approved: "assess-approved".into(),
+            needs_spec: "needs-spec".into(),
+            spec_ready: "spec-ready".into(),
+            spec_approved: "spec-approved".into(),
+            flow_assess: "flow:assess".into(),
+            flow_spec: "flow:spec".into(),
+            flow_full: "flow:full".into(),
+            flow_implement: "flow:implement".into(),
         }
     }
 }

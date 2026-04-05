@@ -1,9 +1,9 @@
 use crate::context::Context;
 use crate::git;
-use crate::pipeline::{self, Stage, Task};
+use crate::pipeline::{self, Flow, Stage, Task};
 use anyhow::{Result, bail};
 
-pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
+pub fn run(ctx: &Context, stage_filter: Option<&str>, flow_filter: Option<&str>) -> Result<()> {
     let _root = ctx.repo.repo_root()?;
     let remote = ctx.repo.remote_url("origin")?;
     if !git::is_github_url(&remote) {
@@ -15,6 +15,12 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
 
     let labels = &ctx.config.labels;
     let all_labels: Vec<&str> = vec![
+        &labels.needs_assess,
+        &labels.assess_ready,
+        &labels.assess_approved,
+        &labels.needs_spec,
+        &labels.spec_ready,
+        &labels.spec_approved,
         &labels.needs_plan,
         &labels.plan_ready,
         &labels.plan_approved,
@@ -26,12 +32,30 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
     let prs = ctx.host.list_prs_any_label(&all_labels)?;
     let tasks = pipeline::build_tasks(issues, prs, ctx.config);
 
-    let filtered: Vec<&Task> = if let Some(filter) = stage_filter {
-        let target = parse_stage_filter(filter)?;
-        tasks.iter().filter(|t| t.stage == target).collect()
-    } else {
-        tasks.iter().collect()
+    let target_flow = match flow_filter {
+        Some(f) => Some(parse_flow_filter(f)?),
+        None => None,
     };
+
+    let filtered: Vec<&Task> = tasks
+        .iter()
+        .filter(|t| {
+            if let Some(filter) = stage_filter {
+                parse_stage_filter(filter)
+                    .map(|target| t.stage == target)
+                    .unwrap_or(false)
+            } else {
+                true
+            }
+        })
+        .filter(|t| {
+            if let Some(ref flow) = target_flow {
+                t.flow == *flow
+            } else {
+                true
+            }
+        })
+        .collect();
 
     if filtered.is_empty() {
         println!("No tasks found.");
@@ -63,7 +87,10 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
             if current_stage.is_some() {
                 println!();
             }
-            println!("\x1b[1m{stage_name}\x1b[0m");
+            println!(
+                "\x1b[1m{stage_name}\x1b[0m \x1b[2m[{}]\x1b[0m",
+                task.flow.display()
+            );
             current_stage = Some(stage_name);
         }
 
@@ -73,9 +100,15 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
             .map(|pr| format!("  PR #{}", pr.number))
             .unwrap_or_default();
 
+        let step_info = format!(
+            " ({} {})",
+            task.current_step.step.display(),
+            task.current_step.status.display()
+        );
+
         println!(
-            "  #{:<5} {}{}",
-            task.issue.number, task.issue.title, pr_info
+            "  #{:<5} {}{}\x1b[2m{}\x1b[0m",
+            task.issue.number, task.issue.title, pr_info, step_info
         );
     }
 
@@ -93,6 +126,19 @@ fn parse_stage_filter(s: &str) -> Result<Stage> {
         "abandoned" => Ok(Stage::Abandoned),
         _ => bail!(
             "unknown stage: '{}'. Valid stages: planning, planned, approved, coding, review, done, abandoned",
+            s
+        ),
+    }
+}
+
+fn parse_flow_filter(s: &str) -> Result<Flow> {
+    match s {
+        "assess" => Ok(Flow::Assess),
+        "spec" => Ok(Flow::Spec),
+        "full" => Ok(Flow::Full),
+        "implement" => Ok(Flow::Implement),
+        _ => bail!(
+            "unknown flow: '{}'. Valid flows: assess, spec, full, implement",
             s
         ),
     }
@@ -137,7 +183,7 @@ mod tests {
         let config = DagenticConfig::default();
         let ctx = test_ctx(&fs, &host, &repo, &config);
 
-        run(&ctx, None).unwrap();
+        run(&ctx, None, None).unwrap();
     }
 
     #[test]
@@ -168,8 +214,7 @@ mod tests {
         let config = DagenticConfig::default();
         let ctx = test_ctx(&fs, &host, &repo, &config);
 
-        // Should not panic, groups issues by stage
-        run(&ctx, None).unwrap();
+        run(&ctx, None, None).unwrap();
     }
 
     #[test]
@@ -200,7 +245,7 @@ mod tests {
         let config = DagenticConfig::default();
         let ctx = test_ctx(&fs, &host, &repo, &config);
 
-        run(&ctx, Some("planning")).unwrap();
+        run(&ctx, Some("planning"), None).unwrap();
     }
 
     #[test]

@@ -15,6 +15,12 @@ pub fn extract_stage_timings(
     config: &DagenticConfig,
 ) -> Vec<StageTiming> {
     let dagentic_labels: Vec<&str> = vec![
+        &config.labels.needs_assess,
+        &config.labels.assess_ready,
+        &config.labels.assess_approved,
+        &config.labels.needs_spec,
+        &config.labels.spec_ready,
+        &config.labels.spec_approved,
         &config.labels.needs_plan,
         &config.labels.plan_ready,
         &config.labels.plan_approved,
