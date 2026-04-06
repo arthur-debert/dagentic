@@ -50,6 +50,59 @@ fn label_defs(config: &DagenticConfig) -> Vec<LabelDef> {
             color: "f9d0c4",
             description: "Multi-PR epic",
         },
+        // Step labels: assess
+        LabelDef {
+            name: config.labels.needs_assess.clone(),
+            color: "c5def5",
+            description: "Triggers the assess agent",
+        },
+        LabelDef {
+            name: config.labels.assess_ready.clone(),
+            color: "0e8a16",
+            description: "Assessment posted, awaiting review",
+        },
+        LabelDef {
+            name: config.labels.assess_approved.clone(),
+            color: "5319e7",
+            description: "Assessment approved",
+        },
+        // Step labels: spec
+        LabelDef {
+            name: config.labels.needs_spec.clone(),
+            color: "c5def5",
+            description: "Triggers the spec agent",
+        },
+        LabelDef {
+            name: config.labels.spec_ready.clone(),
+            color: "0e8a16",
+            description: "Spec posted, awaiting review",
+        },
+        LabelDef {
+            name: config.labels.spec_approved.clone(),
+            color: "5319e7",
+            description: "Spec approved",
+        },
+        // Flow labels
+        LabelDef {
+            name: config.labels.flow_assess.clone(),
+            color: "d4c5f9",
+            description: "Flow: assess only",
+        },
+        LabelDef {
+            name: config.labels.flow_spec.clone(),
+            color: "d4c5f9",
+            description: "Flow: assess + spec",
+        },
+        LabelDef {
+            name: config.labels.flow_full.clone(),
+            color: "d4c5f9",
+            description: "Flow: full pipeline",
+        },
+        LabelDef {
+            name: config.labels.flow_implement.clone(),
+            color: "d4c5f9",
+            description: "Flow: implement + review + fixup",
+        },
     ]
 }
 
@@ -93,6 +146,6 @@ mod tests {
     #[test]
     fn expected_label_count() {
         let config = DagenticConfig::default();
-        assert_eq!(label_defs(&config).len(), 8);
+        assert_eq!(label_defs(&config).len(), 18);
     }
 }

@@ -118,8 +118,8 @@ mod tests {
         // 4 caller + 3 issue templates
         assert_eq!(fs.files.borrow().len(), 7);
 
-        // All 8 labels created
-        assert_eq!(host.labels_created.borrow().len(), 8);
+        // All 18 labels created (8 original + 6 step + 4 flow)
+        assert_eq!(host.labels_created.borrow().len(), 18);
     }
 
     #[test]

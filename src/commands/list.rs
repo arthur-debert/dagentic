@@ -1,9 +1,9 @@
 use crate::context::Context;
 use crate::git;
-use crate::pipeline::{self, Stage, Task};
+use crate::pipeline::{self, Flow, Stage, Task};
 use anyhow::{Result, bail};
 
-pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
+pub fn run(ctx: &Context, stage_filter: Option<&str>, flow_filter: Option<&str>) -> Result<()> {
     let _root = ctx.repo.repo_root()?;
     let remote = ctx.repo.remote_url("origin")?;
     if !git::is_github_url(&remote) {
@@ -15,6 +15,12 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
 
     let labels = &ctx.config.labels;
     let all_labels: Vec<&str> = vec![
+        &labels.needs_assess,
+        &labels.assess_ready,
+        &labels.assess_approved,
+        &labels.needs_spec,
+        &labels.spec_ready,
+        &labels.spec_approved,
         &labels.needs_plan,
         &labels.plan_ready,
         &labels.plan_approved,
@@ -26,12 +32,20 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
     let prs = ctx.host.list_prs_any_label(&all_labels)?;
     let tasks = pipeline::build_tasks(issues, prs, ctx.config);
 
-    let filtered: Vec<&Task> = if let Some(filter) = stage_filter {
-        let target = parse_stage_filter(filter)?;
-        tasks.iter().filter(|t| t.stage == target).collect()
-    } else {
-        tasks.iter().collect()
+    let target_stage = match stage_filter {
+        Some(s) => Some(parse_stage_filter(s)?),
+        None => None,
     };
+    let target_flow = match flow_filter {
+        Some(f) => Some(parse_flow_filter(f)?),
+        None => None,
+    };
+
+    let filtered: Vec<&Task> = tasks
+        .iter()
+        .filter(|t| target_stage.as_ref().is_none_or(|s| t.stage == *s))
+        .filter(|t| target_flow.as_ref().is_none_or(|f| t.flow == *f))
+        .collect();
 
     if filtered.is_empty() {
         println!("No tasks found.");
@@ -73,9 +87,16 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>) -> Result<()> {
             .map(|pr| format!("  PR #{}", pr.number))
             .unwrap_or_default();
 
+        let step_info = format!(
+            " [{}] {} {}",
+            task.flow.display(),
+            task.current_step.step.display(),
+            task.current_step.status.display()
+        );
+
         println!(
-            "  #{:<5} {}{}",
-            task.issue.number, task.issue.title, pr_info
+            "  #{:<5} {}{}\x1b[2m{}\x1b[0m",
+            task.issue.number, task.issue.title, pr_info, step_info
         );
     }
 
@@ -93,6 +114,19 @@ fn parse_stage_filter(s: &str) -> Result<Stage> {
         "abandoned" => Ok(Stage::Abandoned),
         _ => bail!(
             "unknown stage: '{}'. Valid stages: planning, planned, approved, coding, review, done, abandoned",
+            s
+        ),
+    }
+}
+
+fn parse_flow_filter(s: &str) -> Result<Flow> {
+    match s {
+        "assess" => Ok(Flow::Assess),
+        "spec" => Ok(Flow::Spec),
+        "full" => Ok(Flow::Full),
+        "implement" => Ok(Flow::Implement),
+        _ => bail!(
+            "unknown flow: '{}'. Valid flows: assess, spec, full, implement",
             s
         ),
     }
@@ -137,7 +171,7 @@ mod tests {
         let config = DagenticConfig::default();
         let ctx = test_ctx(&fs, &host, &repo, &config);
 
-        run(&ctx, None).unwrap();
+        run(&ctx, None, None).unwrap();
     }
 
     #[test]
@@ -168,8 +202,7 @@ mod tests {
         let config = DagenticConfig::default();
         let ctx = test_ctx(&fs, &host, &repo, &config);
 
-        // Should not panic, groups issues by stage
-        run(&ctx, None).unwrap();
+        run(&ctx, None, None).unwrap();
     }
 
     #[test]
@@ -200,7 +233,7 @@ mod tests {
         let config = DagenticConfig::default();
         let ctx = test_ctx(&fs, &host, &repo, &config);
 
-        run(&ctx, Some("planning")).unwrap();
+        run(&ctx, Some("planning"), None).unwrap();
     }
 
     #[test]
@@ -213,5 +246,73 @@ mod tests {
     #[test]
     fn parse_invalid_stage() {
         assert!(parse_stage_filter("invalid").is_err());
+    }
+
+    #[test]
+    fn parse_valid_flows() {
+        assert_eq!(parse_flow_filter("full").unwrap(), Flow::Full);
+        assert_eq!(parse_flow_filter("assess").unwrap(), Flow::Assess);
+        assert_eq!(parse_flow_filter("spec").unwrap(), Flow::Spec);
+        assert_eq!(parse_flow_filter("implement").unwrap(), Flow::Implement);
+    }
+
+    #[test]
+    fn parse_invalid_flow() {
+        assert!(parse_flow_filter("invalid").is_err());
+    }
+
+    #[test]
+    fn list_filters_by_flow() {
+        let fs = FakeFs::new();
+        let host = FakeGitHost {
+            issues: vec![
+                Issue {
+                    number: 1,
+                    title: "Full flow task".to_string(),
+                    url: String::new(),
+                    state: "OPEN".to_string(),
+                    labels: vec![label("needs-plan"), label("flow:full")],
+                    created_at: "2026-01-01T00:00:00Z".to_string(),
+                },
+                Issue {
+                    number: 2,
+                    title: "Assess only task".to_string(),
+                    url: String::new(),
+                    state: "OPEN".to_string(),
+                    labels: vec![label("needs-assess"), label("flow:assess")],
+                    created_at: "2026-01-02T00:00:00Z".to_string(),
+                },
+            ],
+            ..FakeGitHost::new()
+        };
+        let repo = FakeGitRepo::github(PathBuf::from("/repo"));
+        let config = DagenticConfig::default();
+        let ctx = test_ctx(&fs, &host, &repo, &config);
+
+        // Filter by assess flow — should not panic and should show only assess tasks
+        run(&ctx, None, Some("assess")).unwrap();
+        // Filter by full flow — should show only full tasks
+        run(&ctx, None, Some("full")).unwrap();
+    }
+
+    #[test]
+    fn invalid_stage_filter_returns_error() {
+        let fs = FakeFs::new();
+        let host = FakeGitHost {
+            issues: vec![Issue {
+                number: 1,
+                title: "Task".to_string(),
+                url: String::new(),
+                state: "OPEN".to_string(),
+                labels: vec![label("needs-plan")],
+                created_at: "2026-01-01T00:00:00Z".to_string(),
+            }],
+            ..FakeGitHost::new()
+        };
+        let repo = FakeGitRepo::github(PathBuf::from("/repo"));
+        let config = DagenticConfig::default();
+        let ctx = test_ctx(&fs, &host, &repo, &config);
+
+        assert!(run(&ctx, Some("bogus"), None).is_err());
     }
 }

@@ -17,9 +17,17 @@ pub fn run(ctx: &Context, issue_number: u64) -> Result<()> {
 
     let issue = ctx.host.get_issue(issue_number)?;
     let stage = pipeline::classify_issue(&issue, ctx.config);
+    let flow = pipeline::Flow::from_labels(&issue.labels, ctx.config);
+    let step_state = pipeline::classify_issue_step(&issue, ctx.config);
 
     println!("\x1b[1m#{} {}\x1b[0m", issue.number, issue.title);
     println!("Stage: {}", stage.display());
+    println!(
+        "Flow: {}   Step: {} ({})",
+        flow.display(),
+        step_state.step.display(),
+        step_state.status.display()
+    );
     println!();
 
     // Timeline: stage durations
@@ -89,6 +97,8 @@ pub fn run(ctx: &Context, issue_number: u64) -> Result<()> {
         println!();
     }
 
+    println!("Deliverables: (none)");
+    println!();
     println!("Comments on issue: {comment_count}");
 
     Ok(())
