@@ -73,7 +73,7 @@ pub struct LabelConfig {
     #[config(default = "flow:full")]
     pub flow_full: String,
 
-    /// Label marking a task as implement-only flow
+    /// Label marking a task as implement + review + fixup flow
     #[config(default = "flow:implement")]
     pub flow_implement: String,
 }

@@ -289,14 +289,14 @@ pub fn build_tasks(
             classify_issue(&issue, config)
         };
 
-        let current_step = if let Some(pr) = linked_pr {
-            if pr.merged_at.is_some() || pr.state == "CLOSED" {
-                classify_issue_step(&issue, config)
-            } else {
-                classify_pr_step(pr, config)
-            }
-        } else {
-            classify_issue_step(&issue, config)
+        let current_step = match (&stage, linked_pr) {
+            (Stage::Done, _) => StepState {
+                step: Step::Fixup,
+                status: StepStatus::Approved,
+            },
+            (Stage::Abandoned, _) => classify_issue_step(&issue, config),
+            (_, Some(pr)) => classify_pr_step(pr, config),
+            (_, None) => classify_issue_step(&issue, config),
         };
 
         let flow = Flow::from_labels(&issue.labels, config);
@@ -584,5 +584,25 @@ mod tests {
         assert_eq!(tasks[0].current_step.step, Step::Review);
         assert_eq!(tasks[0].current_step.status, StepStatus::InProgress);
         assert!(tasks[0].deliverables.is_empty());
+    }
+
+    #[test]
+    fn build_tasks_merged_pr_shows_done_step() {
+        let config = DagenticConfig::default();
+        let issues = vec![issue(5, vec![label("plan-approved")], "OPEN")];
+        let prs = vec![PullRequest {
+            number: 10,
+            title: "Implement #5".to_string(),
+            url: String::new(),
+            state: "MERGED".to_string(),
+            labels: vec![],
+            created_at: "2026-01-01T00:00:00Z".to_string(),
+            merged_at: Some("2026-01-02T00:00:00Z".to_string()),
+        }];
+
+        let tasks = build_tasks(issues, prs, &config);
+        assert_eq!(tasks[0].stage, Stage::Done);
+        assert_eq!(tasks[0].current_step.step, Step::Fixup);
+        assert_eq!(tasks[0].current_step.status, StepStatus::Approved);
     }
 }

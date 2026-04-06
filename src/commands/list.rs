@@ -32,6 +32,10 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>, flow_filter: Option<&str>)
     let prs = ctx.host.list_prs_any_label(&all_labels)?;
     let tasks = pipeline::build_tasks(issues, prs, ctx.config);
 
+    let target_stage = match stage_filter {
+        Some(s) => Some(parse_stage_filter(s)?),
+        None => None,
+    };
     let target_flow = match flow_filter {
         Some(f) => Some(parse_flow_filter(f)?),
         None => None,
@@ -39,22 +43,8 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>, flow_filter: Option<&str>)
 
     let filtered: Vec<&Task> = tasks
         .iter()
-        .filter(|t| {
-            if let Some(filter) = stage_filter {
-                parse_stage_filter(filter)
-                    .map(|target| t.stage == target)
-                    .unwrap_or(false)
-            } else {
-                true
-            }
-        })
-        .filter(|t| {
-            if let Some(ref flow) = target_flow {
-                t.flow == *flow
-            } else {
-                true
-            }
-        })
+        .filter(|t| target_stage.as_ref().is_none_or(|s| t.stage == *s))
+        .filter(|t| target_flow.as_ref().is_none_or(|f| t.flow == *f))
         .collect();
 
     if filtered.is_empty() {
@@ -87,10 +77,7 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>, flow_filter: Option<&str>)
             if current_stage.is_some() {
                 println!();
             }
-            println!(
-                "\x1b[1m{stage_name}\x1b[0m \x1b[2m[{}]\x1b[0m",
-                task.flow.display()
-            );
+            println!("\x1b[1m{stage_name}\x1b[0m");
             current_stage = Some(stage_name);
         }
 
@@ -101,7 +88,8 @@ pub fn run(ctx: &Context, stage_filter: Option<&str>, flow_filter: Option<&str>)
             .unwrap_or_default();
 
         let step_info = format!(
-            " ({} {})",
+            " [{}] {} {}",
+            task.flow.display(),
             task.current_step.step.display(),
             task.current_step.status.display()
         );
@@ -258,5 +246,73 @@ mod tests {
     #[test]
     fn parse_invalid_stage() {
         assert!(parse_stage_filter("invalid").is_err());
+    }
+
+    #[test]
+    fn parse_valid_flows() {
+        assert_eq!(parse_flow_filter("full").unwrap(), Flow::Full);
+        assert_eq!(parse_flow_filter("assess").unwrap(), Flow::Assess);
+        assert_eq!(parse_flow_filter("spec").unwrap(), Flow::Spec);
+        assert_eq!(parse_flow_filter("implement").unwrap(), Flow::Implement);
+    }
+
+    #[test]
+    fn parse_invalid_flow() {
+        assert!(parse_flow_filter("invalid").is_err());
+    }
+
+    #[test]
+    fn list_filters_by_flow() {
+        let fs = FakeFs::new();
+        let host = FakeGitHost {
+            issues: vec![
+                Issue {
+                    number: 1,
+                    title: "Full flow task".to_string(),
+                    url: String::new(),
+                    state: "OPEN".to_string(),
+                    labels: vec![label("needs-plan"), label("flow:full")],
+                    created_at: "2026-01-01T00:00:00Z".to_string(),
+                },
+                Issue {
+                    number: 2,
+                    title: "Assess only task".to_string(),
+                    url: String::new(),
+                    state: "OPEN".to_string(),
+                    labels: vec![label("needs-assess"), label("flow:assess")],
+                    created_at: "2026-01-02T00:00:00Z".to_string(),
+                },
+            ],
+            ..FakeGitHost::new()
+        };
+        let repo = FakeGitRepo::github(PathBuf::from("/repo"));
+        let config = DagenticConfig::default();
+        let ctx = test_ctx(&fs, &host, &repo, &config);
+
+        // Filter by assess flow — should not panic and should show only assess tasks
+        run(&ctx, None, Some("assess")).unwrap();
+        // Filter by full flow — should show only full tasks
+        run(&ctx, None, Some("full")).unwrap();
+    }
+
+    #[test]
+    fn invalid_stage_filter_returns_error() {
+        let fs = FakeFs::new();
+        let host = FakeGitHost {
+            issues: vec![Issue {
+                number: 1,
+                title: "Task".to_string(),
+                url: String::new(),
+                state: "OPEN".to_string(),
+                labels: vec![label("needs-plan")],
+                created_at: "2026-01-01T00:00:00Z".to_string(),
+            }],
+            ..FakeGitHost::new()
+        };
+        let repo = FakeGitRepo::github(PathBuf::from("/repo"));
+        let config = DagenticConfig::default();
+        let ctx = test_ctx(&fs, &host, &repo, &config);
+
+        assert!(run(&ctx, Some("bogus"), None).is_err());
     }
 }

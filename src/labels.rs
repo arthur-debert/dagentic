@@ -101,7 +101,7 @@ fn label_defs(config: &DagenticConfig) -> Vec<LabelDef> {
         LabelDef {
             name: config.labels.flow_implement.clone(),
             color: "d4c5f9",
-            description: "Flow: implement + review",
+            description: "Flow: implement + review + fixup",
         },
     ]
 }
